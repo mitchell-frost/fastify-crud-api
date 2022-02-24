@@ -14,7 +14,7 @@ app.register(route);
 const start = () => {
   app.listen(PORT, (err, address) => {
     if (err) {
-      fastify.log.error(err);
+      app.log.error(err);
       // console.log("The process id is ", process.pid);
       process.exit(1);
     }

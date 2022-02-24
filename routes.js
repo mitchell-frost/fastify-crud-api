@@ -1,104 +1,73 @@
-async function routes(fastify, options) {
-  // Testing route
-  fastify.get('/', async (request, reply) => {
-    return { hello: 'world' };
-  });
+const { v4: uuidv4 } = require('uuid');
+const { allTodos, addTodo, updateTodo, deleteTodo } = require('./schema')
+async function routes(fastify, options) {  
+  //Access our client instance value from our decorator
+  const client = fastify.db.client
+    fastify.get('/', {schema: allTodos}, async function (request, reply) { 
+            try { 
+                const {rows} = await client.query('SELECT * FROM todos') 
+                console.log(rows) 
+                reply.send(rows) 
+            } catch(err) { 
+                throw new Error(err) 
+            } 
+        })
+  fastify.get('/test', async function (req, reply) {
+    reply.send({this: 'is to test'})
+  })
+  
+  fastify.post('/', {schema: addTodo}, async function(request, reply) {
+    const {name, important, dueDate} = request.body
+    const id = uuidv4()
+    const done = false
+    createdAt = new Date().toISOString()
+    const query = {
+        text: `INSERT INTO todos (id, name, "createdAt", important, "dueDate", done)
+                VALUES($1, $2, $3, $4, $5, $6 ) RETURNING *`,
+        values: [id, name, createdAt, important, dueDate, done],
+        }
+    try {
+        const {rows} = await client.query(query)
+        console.log(rows[0])
+        reply.code(201)
+        return {created: true}
+    } catch (err) {
+        throw new Error(err)
+    }
 
-  // fastify.get('/test', (req, res) => {
-  //   res.send("This is for testing");
-  // });
+})
+fastify.patch('/:id',{schema: updateTodo}, async function (request, reply) {
+  const id = request.params.id
+  const {important, dueDate, done} = request.body
+  const query = {
+      text:  `UPDATE todos SET 
+              important = COALESCE($1, important), 
+              "dueDate" = COALESCE($2, "dueDate"), 
+              done = COALESCE($3, done) 
+              WHERE id = $4 RETURNING *`,
+      values : [important, dueDate, done, id]
+  }
+  try {
+      const {rows} = await client.query(query)
+      console.log(rows[0])
+      reply.code(204)
+  } catch (err) {
+      throw new Error(err)
+  }
+})
+  
+fastify.delete('/:id', {schema: deleteTodo}, async function(request, reply) {
+  console.log(request.params)
+  try {
+      const {rows} = await client.query('DELETE FROM todos WHERE id = $1 RETURNING *', [request.params.id])
+      console.log(rows[0])
+      reply.code(204)
+  } catch(err) {
+      throw new Error(err)
+  }
+})
 
-  //GET AL USERS
-  fastify.route({
-    method: 'GET',
-    url: '/users',
-    handler: async function (request, reply) {
-      fastify.pg.connect(onConnect);
-      function onConnect(err, client, release) {
-        if (err) return reply.send(err);
-        client.query('SELECT * from users', function onResult(err, result) {
-          release();
-          reply.send(err || result.rows);
-        });
-      }
-    },
-  });
+}  
 
-  //GET ONE USER if exists
-  fastify.route({
-    method: 'GET',
-    url: '/users/:id',
-    handler: async function (request, reply) {
-      fastify.pg.connect(onConnect);
-      function onConnect(err, client, release) {
-        if (err) return reply.send(err);
-        client.query(`SELECT * from users where id=${request.params.id}`, function onResult(err, result) {
-          release();
-          reply.send(err || result.rows[0]);
-        });
-      }
-    },
-  });
 
-  //Create users
-  fastify.route({
-    method: 'POST',
-    url: '/users',
-    handler: function (request, reply) {
-      fastify.pg.connect(onConnect);
-      function onConnect(err, client, release) {
-        if (err) return reply.send(err);
-        const newUser = request.body;
-        client.query(
-          `INSERT into users (name,description,tweets) VALUES('${newUser.name}','${newUser.description}',${newUser.tweets})`,
-          function onResult(err, result) {
-            release();
-            reply.send(err || result);
-          }
-        );
-      }
-    },
-  });
-
-  //UPDATE ONE USER fields
-  fastify.route({
-    method: 'PUT',
-    url: '/users/:id',
-    handler: async function (request, reply) {
-      fastify.pg.connect(onConnect);
-      async function onConnect(err, client, release) {
-        if (err) return reply.send(err);
-        const oldUserReq = await client.query(`SELECT * from users where id=${request.params.id}`);
-        const oldUser = oldUserReq.rows[0];
-        client.query(
-          `UPDATE users SET(name,description,tweets) = ('${request.body.name}', '${request.body.description || oldUser.description}', ${
-            request.body.tweets || oldUser.tweets
-          })
-      WHERE id=${request.params.id}`,
-          function onResult(err, result) {
-            release();
-            reply.send(err || `Updated: ${request.params.id}`);
-          }
-        );
-      }
-    },
-  });
-
-  //DELETE ONE USER if exists
-  fastify.route({
-    method: 'DELETE',
-    url: '/users/:id',
-    handler: async function (request, reply) {
-      fastify.pg.connect(onConnect);
-      function onConnect(err, client, release) {
-        if (err) return reply.send(err);
-        client.query(`DELETE FROM users WHERE id=${request.params.id}`, function onResult(err, result) {
-          release();
-          reply.send(err || `Deleted: ${request.params.id}`);
-        });
-      }
-    },
-  });
-}
-
-module.exports = routes;
+module.exports = routes

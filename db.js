@@ -3,7 +3,7 @@ const { Client } = require('pg')
 require('dotenv').config()
 const client = new Client({
     user: 'bhawna',
-    password:process.env.PASSWORD,
+    password:process.env.POSTGRES_PASSWORD,
     host: 'localhost',
     port: 5432,
     database: 'fastifydb'
