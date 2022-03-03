@@ -13,7 +13,7 @@ async function routes(fastify, options) {
             } 
         })
   fastify.get('/test', async function (req, reply) {
-    reply.send({this: 'is to test'})
+    return({this: 'is to test'})
   })
   
   fastify.post('/', {schema: addTodo}, async function(request, reply) {
@@ -68,6 +68,5 @@ fastify.delete('/:id', {schema: deleteTodo}, async function(request, reply) {
 })
 
 }  
-
 
 module.exports = routes

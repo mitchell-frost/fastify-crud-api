@@ -17,4 +17,4 @@ async function dbconnector(fastify, options) {
         console.error(err)
     }
 }
-module.exports= fastifyPlugin(dbconnector)
+module.exports = fastifyPlugin(dbconnector)
