@@ -2,7 +2,7 @@ const fastifyPlugin = require('fastify-plugin')
 const { Client } = require('pg')
 require('dotenv').config()
 const client = new Client({
-    user: 'bhawna',
+    user: 'crud',
     password:process.env.POSTGRES_PASSWORD,
     host: 'localhost',
     port: 5432,
