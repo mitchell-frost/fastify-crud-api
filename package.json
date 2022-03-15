@@ -17,6 +17,7 @@
     "fastify-cors": "^6.0.3",
     "fastify-postgres": "^3.6.0",
     "jest": "^27.5.1",
+    "nock": "^13.2.4",
     "nodemon": "^2.0.15",
     "pg": "^8.7.3",
     "pg-promise": "^10.11.1",
