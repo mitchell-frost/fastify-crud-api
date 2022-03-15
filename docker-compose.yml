@@ -1,8 +1,8 @@
 version: '3.3'
 services:
   fastify_backend:
-    container_name: test_backend
-    image: bhawna/test_backend:0.0.1
+    container_name: fastify_backend
+    image: bhawna/fastify_backend:0.0.1
     build:
       context: .
     ports:
